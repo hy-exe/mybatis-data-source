@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--设置下面要用到的属性-->
+<!--date:2010-03-22 -->
+
+<project name="setup" default="" basedir=".">
+	
+    <target name="setAttri" description="set attribute in property file">
+    	<input message="please enter properties file path:" addproperty="properties.file" />
+    	<input message="please enter attribute key:" addproperty="key" />
+    	<input message="please enter attribute value:" addproperty="value" />
+    	
+    	<echo>updating file with key:[${key}] value:[${value}]</echo>
+    	
+    	<propertyfile
+            file="${properties.file}">
+            <entry  key="${key}" value="${value}"/>
+        </propertyfile>
+    </target>
+    
+</project>

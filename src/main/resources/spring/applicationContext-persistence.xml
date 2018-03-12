@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:jdbc="http://www.springframework.org/schema/jdbc"  
+	xmlns:jee="http://www.springframework.org/schema/jee" xmlns:tx="http://www.springframework.org/schema/tx"
+    xmlns:util="http://www.springframework.org/schema/util" xmlns:task="http://www.springframework.org/schema/task" xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.1.xsd
+		http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-4.1.xsd
+		http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-4.1.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.1.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.1.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-4.1.xsd">
+	
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+		abstract="false" scope="singleton" lazy-init="default" autowire="default" destroy-method="close">
+		<property name="driverClass" value="${sp.jdbc.driver}" />
+		<property name="jdbcUrl" value="${sp.jdbc.url}" />
+		<property name="user" value="${sp.jdbc.username}" />
+		<property name="password" value="${sp.jdbc.password}" />
+		<property name="minPoolSize" value="${sp.jdbc.minPoolSize}" />
+		<property name="maxPoolSize" value="${sp.jdbc.maxPoolSize}" />
+		<property name="maxIdleTime" value="${sp.jdbc.maxIdleTime}" />
+		<property name="initialPoolSize" value="${sp.jdbc.initialPoolSize}" />
+		<property name="numHelperThreads" value="${sp.jdbc.numHelperThreads}" />
+	</bean>
+
+	<bean id="dataSourceCommon" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+		abstract="false" scope="singleton" lazy-init="default" autowire="default" destroy-method="close">
+		<property name="driverClass" value="${common.jdbc.driver}" />
+		<property name="jdbcUrl" value="${common.jdbc.url}" />
+		<property name="user" value="${common.jdbc.username}" />
+		<property name="password" value="${common.jdbc.password}" />
+		<property name="minPoolSize" value="${common.jdbc.minPoolSize}" />
+		<property name="maxPoolSize" value="${common.jdbc.maxPoolSize}" />
+		<property name="maxIdleTime" value="${common.jdbc.maxIdleTime}" />
+		<property name="initialPoolSize" value="${common.jdbc.initialPoolSize}" />
+		<property name="numHelperThreads" value="${common.jdbc.numHelperThreads}" />
+		<property name="idleConnectionTestPeriod" value="${common.jdbc.idleConnectionTestPeriod}" />
+		<property name="preferredTestQuery" value="${common.jdbc.preferredTestQuery}" />
+	</bean>
+	
+	<bean id="sqlMapDB" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="configLocation" value="classpath:ibatis/sqlmap-config.xml" />
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+	<bean id="commonSqlMap" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="configLocation" value="classpath:ibatis/sqlmap-config.xml" />
+		<property name="dataSource" ref="dataSourceCommon"/>
+	</bean>
+
+	<bean id="dbRouteConfig" class="com.mybatis.data.source.domain.DBRouteConfig">
+		<property name="sqlMapList">
+			<map>
+				<entry key="smsServer" value-ref="sqlMapDB" />
+				<entry key="commonDB" value-ref="commonSqlMap" />
+			</map>
+		</property>
+		<property name="defaultNodeNameList">
+			<list>
+				<value>smsServer</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean id="bscDefaultDB" class="com.mybatis.data.source.domain.DBRoute">
+		<constructor-arg value="smsServer" />
+	</bean>
+</beans>

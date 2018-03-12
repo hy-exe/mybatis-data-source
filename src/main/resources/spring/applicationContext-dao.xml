@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+	<bean id="baseDAO" abstract="true" class="com.mybatis.data.source.dao.impl.BaseDAO">
+		<property name="dbRouteConfig" ref="dbRouteConfig" />
+		<property name="defaultDB" ref="bscDefaultDB" />
+	</bean>
+
+	<bean id="testDAO" class="com.mybatis.data.source.dao.impl.TestDAOImpl"
+		parent="baseDAO">
+		<property name="defaultDB">
+			<bean class="com.mybatis.data.source.domain.DBRoute">
+				<constructor-arg value="commonDB" />
+			</bean>
+		</property>
+	</bean>
+</beans>
