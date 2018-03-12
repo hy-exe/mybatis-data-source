@@ -7,9 +7,7 @@ import com.mybatis.data.source.dao.ITestDAO;
 
 public class Booter {
 
-	@SuppressWarnings("resource")
 	public static void main(String[] args) {
-		try {
 			String[] sources = new String[] { "spring/applicationContext.xml",
 					"spring/applicationContext-persistence.xml", "spring/applicationContext-dao.xml",
 					"spring/applicationContext-service.xml" };
@@ -17,10 +15,6 @@ public class Booter {
 			ITestDAO testDAO = (ITestDAO) ctx.getBean("testDAO");
 			System.out.println(testDAO.getBscInfoEntityListByLac("11"));
 			System.out.println("bsc info Server Started... ");
-		} catch (Exception e) {
-			System.out.println("bsc info Server Start Error: " + e);
-			System.exit(-1);
-		}
 	}
 
 }
