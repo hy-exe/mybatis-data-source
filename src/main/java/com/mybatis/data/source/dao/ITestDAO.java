@@ -4,11 +4,12 @@
 package com.mybatis.data.source.dao;
 
 /**
- * @author qingwei.zhou
- * @version 2016-6-29 下午3:02:49
+ * 
+ * @author Administrator
+ *
  */
 public interface ITestDAO {
 
-	public Integer getBscInfoEntityListByLac(String param);
+	public Integer getInfoEntityList(String param);
 
 }
