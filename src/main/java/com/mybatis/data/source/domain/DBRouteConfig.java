@@ -19,29 +19,12 @@ public class DBRouteConfig {
 	// 配置所有数据库节点
 	private List<String> allNodeNameList = new ArrayList<String>();
 
-	// 路由策略默认返回的数据库节点列表,DB XIDs
+	// 路由策略默认返回的数据库节点列表
 	private List<String> defaultNodeNameList = new ArrayList<String>();
 
 	private Map<String, SqlSessionFactory> sqlMapList;
 
 	private Map<String, SqlSession> sqlMapTemplateList = new HashMap<String, SqlSession>();
-
-	/**
-	 * 根据给定的路由策略及查询SQL编号返回对应的数据库节点列表
-	 * 
-	 * @param dbRoute
-	 * @param statement
-	 * @return 查找不到时返回默认的节点列表
-	 */
-	public List<String> routingDB(DBRoute dbRoute, String statement) {
-		List<String> nodeNameListByNodeRule = routingDB(dbRoute);
-
-		if ((nodeNameListByNodeRule != null) && !nodeNameListByNodeRule.isEmpty()) {
-			return nodeNameListByNodeRule;
-		}
-
-		return defaultNodeNameList;
-	}
 
 	/**
 	 * 根据给定的路由策略返回对应的数据库节点列表
@@ -71,14 +54,14 @@ public class DBRouteConfig {
 					}
 				}
 
-				return nodeNameList;
+				return nodeNameList.isEmpty() ? defaultNodeNameList : nodeNameList;
 			} else if (allNodeNameList.contains(dbName)) {
 				nodeNameList.add(dbName);
-				return nodeNameList;
+				return nodeNameList.isEmpty() ? defaultNodeNameList : nodeNameList;
 			}
 		}
 
-		return nodeNameList;
+		return nodeNameList.isEmpty() ? defaultNodeNameList : nodeNameList;
 	}
 
 	/**
@@ -88,11 +71,10 @@ public class DBRouteConfig {
 	 * @param sqlId
 	 * @return
 	 */
-	public Map<String, SqlSession> getSqlMapTemplates(DBRoute dr, String sqlId) {
-		List<String> dbNameList = this.routingDB(dr, sqlId);
+	public Map<String, SqlSession> getSqlMapTemplates(DBRoute dr) {
+		List<String> dbNameList = this.routingDB(dr);
 		if (null == dbNameList || dbNameList.isEmpty()) {
-			throw new RuntimeException("No database found, please confirm the parameters. DBRoute=[" + dr
-					+ "], statement=[" + sqlId + "]");
+			throw new RuntimeException("No database found, please confirm the parameters. DBRoute=[" + dr + "]");
 		}
 
 		Map<String, SqlSession> retDbList = new HashMap<String, SqlSession>();

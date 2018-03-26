@@ -23,7 +23,7 @@ public class HandleDelegateImpl implements HandleDelegate {
 	@Override
 	public Integer queryForCount(String countStatement, Object param, DBRoute dr) {
 
-		Map<String, SqlSession> dbMap = dbRouteConfig.getSqlMapTemplates(dr, countStatement);
+		Map<String, SqlSession> dbMap = dbRouteConfig.getSqlMapTemplates(dr);
 
 		int totalCount = 0;
 
@@ -60,7 +60,7 @@ public class HandleDelegateImpl implements HandleDelegate {
 	@Override
 	public List<Object> queryForList(String statementName, Object parameterObject, DBRoute dr) {
 
-		Map<String, SqlSession> dbMap = dbRouteConfig.getSqlMapTemplates(dr, statementName);
+		Map<String, SqlSession> dbMap = dbRouteConfig.getSqlMapTemplates(dr);
 
 		List<Object> resultList = new ArrayList<Object>();
 
@@ -92,7 +92,7 @@ public class HandleDelegateImpl implements HandleDelegate {
 	@Override
 	public Object queryForObject(String statementName, Object parameterObject, DBRoute dr) {
 
-		Map<String, SqlSession> dbMap = dbRouteConfig.getSqlMapTemplates(dr, statementName);
+		Map<String, SqlSession> dbMap = dbRouteConfig.getSqlMapTemplates(dr);
 
 		for (Map.Entry<String, SqlSession> e : dbMap.entrySet()) {
 
@@ -129,7 +129,7 @@ public class HandleDelegateImpl implements HandleDelegate {
 	@Override
 	public List<Object> queryForPagedList(String countStatement, String listStatement, Object param,
 			Paginator paginator, DBRoute dr) {
-		Map<String, SqlSession> dbMap = dbRouteConfig.getSqlMapTemplates(dr, countStatement);
+		Map<String, SqlSession> dbMap = dbRouteConfig.getSqlMapTemplates(dr);
 
 		if (dbMap.size() != 1) {
 			throw new RuntimeException("more than 1 database found, please confirm the parameters. DBRoute=[" + dr
@@ -179,7 +179,7 @@ public class HandleDelegateImpl implements HandleDelegate {
 
 	@Override
 	public int delete(String statementName, Object parameterObject, DBRoute dr) {
-		Map.Entry<String, SqlSession> e = getSqlMapTemplate(dr, statementName);
+		Map.Entry<String, SqlSession> e = getSqlMapTemplate(dr);
 
 		String dbName = e.getKey();
 		SqlSession st = e.getValue();
@@ -195,7 +195,7 @@ public class HandleDelegateImpl implements HandleDelegate {
 
 	@Override
 	public int update(String statementName, Object parameterObject, DBRoute dr) {
-		Map.Entry<String, SqlSession> e = getSqlMapTemplate(dr, statementName);
+		Map.Entry<String, SqlSession> e = getSqlMapTemplate(dr);
 
 		String dbName = e.getKey();
 		SqlSession st = e.getValue();
@@ -209,7 +209,7 @@ public class HandleDelegateImpl implements HandleDelegate {
 
 	@Override
 	public Object insert(String statementName, Object parameterObject, DBRoute dr) {
-		Map.Entry<String, SqlSession> e = getSqlMapTemplate(dr, statementName);
+		Map.Entry<String, SqlSession> e = getSqlMapTemplate(dr);
 
 		String dbName = e.getKey();
 		SqlSession st = e.getValue();
@@ -225,7 +225,7 @@ public class HandleDelegateImpl implements HandleDelegate {
 	@SuppressWarnings("rawtypes")
 	@Override
 	public void batchInsert(String statementName, List memberList, DBRoute dr) {
-		Map.Entry<String, SqlSession> e = getSqlMapTemplate(dr, statementName);
+		Map.Entry<String, SqlSession> e = getSqlMapTemplate(dr);
 
 		String dbName = e.getKey();
 		SqlSession st = e.getValue();
@@ -244,7 +244,7 @@ public class HandleDelegateImpl implements HandleDelegate {
 	@SuppressWarnings("rawtypes")
 	@Override
 	public void batchUpdate(String statementName, List memberList, DBRoute dr) {
-		Map.Entry<String, SqlSession> e = getSqlMapTemplate(dr, statementName);
+		Map.Entry<String, SqlSession> e = getSqlMapTemplate(dr);
 
 		String dbName = e.getKey();
 		SqlSession st = e.getValue();
@@ -272,17 +272,22 @@ public class HandleDelegateImpl implements HandleDelegate {
 		}
 	}
 
-	protected Map.Entry<String, SqlSession> getSqlMapTemplate(DBRoute dr, String statementName) {
-		Map<String, SqlSession> dbMap = dbRouteConfig.getSqlMapTemplates(dr, statementName);
+	/**
+	 * 返回一个查询数据库节点
+	 * 
+	 * @param dr
+	 * @return
+	 */
+	protected Map.Entry<String, SqlSession> getSqlMapTemplate(DBRoute dr) {
+		Map<String, SqlSession> dbMap = dbRouteConfig.getSqlMapTemplates(dr);
 
 		if (dbMap.isEmpty()) {
-			throw new RuntimeException("no database found, please confirm the parameters. DBRoute=[" + dr
-					+ "], statement=[" + statementName + "]");
+			throw new RuntimeException("no database found, please confirm the parameters. DBRoute=[" + dr + "]");
 		}
 
 		if (dbMap.size() != 1) {
-			throw new RuntimeException("more than 1 database found, please confirm the parameters. DBRoute=[" + dr
-					+ "], statement=[" + statementName + "]");
+			throw new RuntimeException(
+					"more than 1 database found, please confirm the parameters. DBRoute=[" + dr + "]");
 		}
 
 		return dbMap.entrySet().iterator().next();
