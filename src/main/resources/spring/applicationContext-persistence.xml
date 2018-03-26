@@ -63,7 +63,7 @@
 		</property>
 	</bean>
 
-	<bean id="bscDefaultDB" class="com.mybatis.data.source.domain.DBRoute">
+	<bean id="defaultDB" class="com.mybatis.data.source.domain.DBRoute">
 		<constructor-arg value="smsServer" />
 	</bean>
 </beans>

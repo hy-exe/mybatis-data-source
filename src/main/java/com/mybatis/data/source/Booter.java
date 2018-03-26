@@ -13,7 +13,7 @@ public class Booter {
 		ApplicationContext ctx = new ClassPathXmlApplicationContext(sources);
 		ITestDAO testDAO = (ITestDAO) ctx.getBean("testDAO");
 		System.out.println(testDAO.getInfoEntityList("11"));
-		System.out.println("bsc info Server Started... ");
+		System.out.println("Server Started... ");
 	}
 
 }

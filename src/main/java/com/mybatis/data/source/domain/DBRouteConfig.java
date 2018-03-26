@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.StringTokenizer;
 
 import org.apache.ibatis.session.SqlSession;
@@ -17,219 +16,125 @@ import org.apache.ibatis.session.SqlSessionFactory;
  */
 public class DBRouteConfig {
 
-  // 配置所有数据库节点
-  private List<String>                   allNodeNameList     = new ArrayList<String>();
+	// 配置所有数据库节点
+	private List<String> allNodeNameList = new ArrayList<String>();
 
-  // 路由策略默认返回的数据库节点列表,DB XIDs
-  private List<String>                   defaultNodeNameList = new ArrayList<String>();
+	// 路由策略默认返回的数据库节点列表,DB XIDs
+	private List<String> defaultNodeNameList = new ArrayList<String>();
 
-  // 为每条SQL配置执行的DB
-  // key is statement id, value is DB XIDs,以逗号分隔
-  private Map<String, String>            statementRuleMap    = new HashMap<String, String>();
+	private Map<String, SqlSessionFactory> sqlMapList;
 
-  // routing rules.
-  private List<DBRouteRule>              dbRuleList          = new ArrayList<DBRouteRule>();
+	private Map<String, SqlSession> sqlMapTemplateList = new HashMap<String, SqlSession>();
 
-  private Map<String, SqlSessionFactory> sqlMapList;
+	/**
+	 * 根据给定的路由策略及查询SQL编号返回对应的数据库节点列表
+	 * 
+	 * @param dbRoute
+	 * @param statement
+	 * @return 查找不到时返回默认的节点列表
+	 */
+	public List<String> routingDB(DBRoute dbRoute, String statement) {
+		List<String> nodeNameListByNodeRule = routingDB(dbRoute);
 
-  private Map<String, SqlSession>        sqlMapTemplateList  = new HashMap<String, SqlSession>();
+		if ((nodeNameListByNodeRule != null) && !nodeNameListByNodeRule.isEmpty()) {
+			return nodeNameListByNodeRule;
+		}
 
-  public void setNodeRuleMap(Map<String, Properties> nodeRuleMap) {
-    if (nodeRuleMap.size() == 0) {
-      return;
-    }
+		return defaultNodeNameList;
+	}
 
-    for (Iterator<String> it = nodeRuleMap.keySet().iterator(); it.hasNext();) {
+	/**
+	 * 根据给定的路由策略返回对应的数据库节点列表
+	 * 
+	 * @param dbRoute
+	 * @return
+	 */
+	public List<String> routingDB(DBRoute dbRoute) {
+		if (null == dbRoute) {
+			return new ArrayList<String>();
+		}
 
-      String dbName = (String) it.next();
+		List<String> nodeNameList = new ArrayList<String>();
 
-      DBRouteRule dbRule = new DBRouteRule(dbName.trim());
+		String dbName = dbRoute.getDbName();
 
-      Properties element = (Properties) nodeRuleMap.get(dbName);
-      for (Iterator<Map.Entry<Object, Object>> iter = element.entrySet().iterator(); iter.hasNext();) {
-        Map.Entry<Object, Object> entry = iter.next();
+		if (dbName != null) {
+			if (dbName.indexOf(",") != -1) {
+				StringTokenizer st = new StringTokenizer(dbName, ",");
 
-        String ruleKey = (String) entry.getKey();
-        String routingRule = (String) entry.getValue();
+				while (st.hasMoreTokens()) {
+					String dbxid = st.nextToken();
+					dbxid = dbxid.trim();
 
-        dbRule.addRule(ruleKey, routingRule);
-      }
+					if (allNodeNameList.contains(dbxid)) {
+						nodeNameList.add(dbxid);
+					}
+				}
 
-      dbRuleList.add(dbRule);
-    }
-  }
+				return nodeNameList;
+			} else if (allNodeNameList.contains(dbName)) {
+				nodeNameList.add(dbName);
+				return nodeNameList;
+			}
+		}
 
-  public void setStatementRuleMap(Map<String, String> statementRuleMap) {
-    this.statementRuleMap = statementRuleMap;
-  }
+		return nodeNameList;
+	}
 
-  public void setDefaultNodeNameList(List<String> defaultNodeNameList) {
-    this.defaultNodeNameList = defaultNodeNameList;
-  }
+	/**
+	 * 根据给定的路由策略及查询SQL编号返回对应的数据库列表
+	 * 
+	 * @param dr
+	 * @param sqlId
+	 * @return
+	 */
+	public Map<String, SqlSession> getSqlMapTemplates(DBRoute dr, String sqlId) {
+		List<String> dbNameList = this.routingDB(dr, sqlId);
+		if (null == dbNameList || dbNameList.isEmpty()) {
+			throw new RuntimeException("No database found, please confirm the parameters. DBRoute=[" + dr
+					+ "], statement=[" + sqlId + "]");
+		}
 
-  /**
-   * 根据给定的路由策略及查询SQL编号返回对应的数据库节点列表
-   * 
-   * @param dbRoute
-   * @param statement
-   * @return 查找不到时返回默认的节点列表
-   */
-  public List<String> routingDB(DBRoute dbRoute, String statement) {
-    List<String> nodeNameListByNodeRule = routingDB(dbRoute);
+		Map<String, SqlSession> retDbList = new HashMap<String, SqlSession>();
 
-    if ((nodeNameListByNodeRule != null) && !nodeNameListByNodeRule.isEmpty()) {
-      return nodeNameListByNodeRule;
-    }
+		for (int i = 0; i < dbNameList.size(); i++) {
+			String dbName = dbNameList.get(i);
+			SqlSession o = sqlMapTemplateList.get(dbName);
+			if (o != null) {
+				retDbList.put(dbName, o);
+			}
+		}
 
-    List<String> nodeNameListByStatementRule = routingDB(statement);
+		return retDbList;
+	}
 
-    if (nodeNameListByStatementRule != null && !nodeNameListByStatementRule.isEmpty()) {
-      return nodeNameListByStatementRule;
-    }
+	public Map<String, SqlSessionFactory> getSqlMapList() {
+		return sqlMapList;
+	}
 
-    return defaultNodeNameList;
-  }
+	public void setSqlMapList(Map<String, SqlSessionFactory> sqlMapList) {
+		this.sqlMapList = sqlMapList;
 
-  /**
-   * 根据给定的路由策略返回对应的数据库节点列表
-   * 
-   * @param dbRoute
-   * @return
-   */
-  public List<String> routingDB(DBRoute dbRoute) {
-    if (null == dbRoute) {
-      return new ArrayList<String>();
-    }
+		// 创建SqlMapTemplate列表
+		for (Iterator<String> it = sqlMapList.keySet().iterator(); it.hasNext();) {
+			String dbKey = it.next();
+			SqlSessionFactory sqlMapClient = (SqlSessionFactory) sqlMapList.get(dbKey);
+			SqlSession sqlMT = sqlMapClient.openSession();
+			sqlMapTemplateList.put(dbKey, sqlMT);
+		}
 
-    List<String> nodeNameList = new ArrayList<String>();
+		this.allNodeNameList.addAll(sqlMapList.keySet());
+	}
 
-    if (dbRoute.getRoutingStrategy() == DBRoutingStrategy.BY_XID) {
-      String xid = dbRoute.getXid();
+	public Map<String, SqlSession> getSqlMapTemplateList() {
+		return sqlMapTemplateList;
+	}
 
-      if (xid != null) {
-        if (xid.indexOf(",") != -1) {
-          StringTokenizer st = new StringTokenizer(xid, ",");
+	public void setSqlMapTemplateList(Map<String, SqlSession> sqlMapTemplateList) {
+		this.sqlMapTemplateList = sqlMapTemplateList;
+	}
 
-          while (st.hasMoreTokens()) {
-            String dbxid = st.nextToken();
-            dbxid = dbxid.trim();
-
-            if (allNodeNameList.contains(dbxid)) {
-              nodeNameList.add(dbxid);
-            }
-          }
-
-          return nodeNameList;
-        } else if (allNodeNameList.contains(xid)) {
-          nodeNameList.add(xid);
-          return nodeNameList;
-        }
-      }
-
-    } else if (dbRoute.getRoutingStrategy() == DBRoutingStrategy.BY_ITEM) {
-      Map<String, String> items = dbRoute.getItems();
-      if (items == null || items.isEmpty()) {
-        return nodeNameList;
-      }
-
-      for (DBRouteRule routeRule : dbRuleList) {
-        if (routeRule.isMatched(items)) {
-          nodeNameList.add(routeRule.getDbName());
-          return nodeNameList;
-        }
-      }
-    }
-
-    return nodeNameList;
-  }
-
-  /**
-   * 根据给定的查询SQL编号返回对应的数据库节点列表
-   * 
-   * @param statement
-   * @return
-   */
-  public List<String> routingDB(String statement) {
-    if (statement == null) {
-      return new ArrayList<String>();
-    }
-
-    String xid = (String) statementRuleMap.get(statement);
-
-    if (xid != null) {
-      List<String> nodeNameList = new ArrayList<String>();
-
-      if (xid.indexOf(",") != -1) {
-        StringTokenizer st = new StringTokenizer(xid, ",");
-
-        while (st.hasMoreTokens()) {
-          String dbxid = st.nextToken();
-          dbxid = dbxid.trim();
-
-          if (allNodeNameList.contains(dbxid)) {
-            nodeNameList.add(dbxid);
-          }
-        }
-
-        return nodeNameList;
-      } else if (allNodeNameList.contains(xid)) {
-        nodeNameList.add(xid);
-        return nodeNameList;
-      }
-    }
-
-    return new ArrayList<String>();
-  }
-
-  /**
-   * 根据给定的路由策略及查询SQL编号返回对应的数据库列表
-   * 
-   * @param dr
-   * @param sqlId
-   * @return
-   */
-  public Map<String, SqlSession> getSqlMapTemplates(DBRoute dr, String sqlId) {
-    List<String> dbNameList = this.routingDB(dr, sqlId);
-    if (null == dbNameList || dbNameList.isEmpty()) {
-      throw new RuntimeException("No database found, please confirm the parameters. DBRoute=[" + dr + "], statement=[" + sqlId + "]");
-    }
-
-    Map<String, SqlSession> retDbList = new HashMap<String, SqlSession>();
-
-    for (int i = 0; i < dbNameList.size(); i++) {
-      String dbName = dbNameList.get(i);
-      SqlSession o = sqlMapTemplateList.get(dbName);
-      if (o != null) {
-        retDbList.put(dbName, o);
-      }
-    }
-
-    return retDbList;
-  }
-
-  public Map<String, SqlSessionFactory> getSqlMapList() {
-    return sqlMapList;
-  }
-
-  public void setSqlMapList(Map<String, SqlSessionFactory> sqlMapList) {
-    this.sqlMapList = sqlMapList;
-
-    // 创建SqlMapTemplate列表
-    for (Iterator<String> it = sqlMapList.keySet().iterator(); it.hasNext();) {
-      String dbKey = it.next();
-      SqlSessionFactory sqlMapClient = (SqlSessionFactory) sqlMapList.get(dbKey);
-      SqlSession sqlMT = sqlMapClient.openSession();
-      sqlMapTemplateList.put(dbKey, sqlMT);
-    }
-
-    this.allNodeNameList.addAll(sqlMapList.keySet());
-  }
-
-  public Map<String, SqlSession> getSqlMapTemplateList() {
-    return sqlMapTemplateList;
-  }
-
-  public void setSqlMapTemplateList(Map<String, SqlSession> sqlMapTemplateList) {
-    this.sqlMapTemplateList = sqlMapTemplateList;
-  }
+	public void setDefaultNodeNameList(List<String> defaultNodeNameList) {
+		this.defaultNodeNameList = defaultNodeNameList;
+	}
 }

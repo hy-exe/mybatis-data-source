@@ -4,10 +4,8 @@ import java.util.List;
 
 import com.mybatis.data.source.domain.DBRoute;
 import com.mybatis.data.source.domain.DBRouteConfig;
-import com.mybatis.data.source.domain.EntityDelegate;
-import com.mybatis.data.source.domain.IbatisEntityDelegate;
-import com.mybatis.data.source.domain.IbatisQueryDelegate;
-import com.mybatis.data.source.domain.QueryDelegate;
+import com.mybatis.data.source.domain.HandleDelegate;
+import com.mybatis.data.source.domain.HandleDelegateImpl;
 
 /**
  * 
@@ -17,86 +15,75 @@ import com.mybatis.data.source.domain.QueryDelegate;
  */
 public class BaseDAO {
 
-  private QueryDelegate  queryDelegate  = new IbatisQueryDelegate();
+	private HandleDelegate handleDelegate = new HandleDelegateImpl();
 
-  private EntityDelegate entityDelegate = new IbatisEntityDelegate();
+	private DBRoute defaultDB;
 
-  private DBRoute        defaultDB;
+	public void setDbRouteConfig(DBRouteConfig dbRouteConfig) {
+		this.handleDelegate.setDbRouteConfig(dbRouteConfig);
+	}
 
-  public QueryDelegate getQueryDelegate() {
-    return queryDelegate;
-  }
+	public Object insert(String statementName, Object parameterObject) {
+		return getHandleDelegate().insert(statementName, parameterObject, getDefaultDB());
+	}
 
-  public void setQueryDelegate(QueryDelegate queryDelegate) {
-    this.queryDelegate = queryDelegate;
-  }
+	public int update(String statementName, Object parameterObject) {
+		return getHandleDelegate().update(statementName, parameterObject, getDefaultDB());
+	}
 
-  public EntityDelegate getEntityDelegate() {
-    return entityDelegate;
-  }
+	public int delete(String statementName, Object parameterObject) {
+		return getHandleDelegate().delete(statementName, parameterObject, getDefaultDB());
+	}
 
-  public void setEntityDelegate(EntityDelegate entityDelegate) {
-    this.entityDelegate = entityDelegate;
-  }
+	@SuppressWarnings("rawtypes")
+	public void batchInsert(String statementName, List memberList) {
+		getHandleDelegate().batchInsert(statementName, memberList, getDefaultDB());
+	}
 
-  public DBRoute getDefaultDB() {
-    return defaultDB;
-  }
+	@SuppressWarnings("rawtypes")
+	public void batchUpdate(String statementName, List memberList) {
+		getHandleDelegate().batchUpdate(statementName, memberList, getDefaultDB());
+	}
 
-  public void setDefaultDB(DBRoute defaultDB) {
-    this.defaultDB = defaultDB;
-  }
+	public Object queryForObject(String statementName, Object parameterObject) {
+		return getHandleDelegate().queryForObject(statementName, parameterObject, getDefaultDB());
+	}
 
-  public void setDbRouteConfig(DBRouteConfig dbRouteConfig) {
-    this.queryDelegate.setDbRouteConfig(dbRouteConfig);
-    this.entityDelegate.setDbRouteConfig(dbRouteConfig);
-  }
+	public Object queryForObject(String statementName) {
+		return getHandleDelegate().queryForObject(statementName, getDefaultDB());
+	}
 
-  public Object insert(String statementName, Object parameterObject) {
-    return getEntityDelegate().insert(statementName, parameterObject, getDefaultDB());
-  }
+	@SuppressWarnings("rawtypes")
+	public List queryForList(String statementName) {
+		return getHandleDelegate().queryForList(statementName, getDefaultDB());
+	}
 
-  public int update(String statementName, Object parameterObject) {
-    return getEntityDelegate().update(statementName, parameterObject, getDefaultDB());
-  }
+	@SuppressWarnings("rawtypes")
+	public List queryForList(String statementName, Object parameterObject) {
+		return getHandleDelegate().queryForList(statementName, parameterObject, getDefaultDB());
+	}
 
-  public int delete(String statementName, Object parameterObject) {
-    return getEntityDelegate().delete(statementName, parameterObject, getDefaultDB());
-  }
+	public Integer queryForCount(String countStatement, Object param) {
+		return getHandleDelegate().queryForCount(countStatement, param, getDefaultDB());
+	}
 
-  @SuppressWarnings("rawtypes")
-  public void batchInsert(String statementName, List memberList) {
-    getEntityDelegate().batchInsert(statementName, memberList, getDefaultDB());
-  }
+	public Integer queryForCount(String countStatement) {
+		return getHandleDelegate().queryForCount(countStatement, getDefaultDB());
+	}
 
-  @SuppressWarnings("rawtypes")
-  public void batchUpdate(String statementName, List memberList) {
-    getEntityDelegate().batchUpdate(statementName, memberList, getDefaultDB());
-  }
+	public HandleDelegate getHandleDelegate() {
+		return handleDelegate;
+	}
 
-  public Object queryForObject(String statementName, Object parameterObject) {
-    return getQueryDelegate().queryForObject(statementName, parameterObject, getDefaultDB());
-  }
+	public void setHandleDelegate(HandleDelegate handleDelegate) {
+		this.handleDelegate = handleDelegate;
+	}
 
-  public Object queryForObject(String statementName) {
-    return getQueryDelegate().queryForObject(statementName, getDefaultDB());
-  }
+	public DBRoute getDefaultDB() {
+		return defaultDB;
+	}
 
-  @SuppressWarnings("rawtypes")
-  public List queryForList(String statementName) {
-    return getQueryDelegate().queryForList(statementName, getDefaultDB());
-  }
-
-  @SuppressWarnings("rawtypes")
-  public List queryForList(String statementName, Object parameterObject) {
-    return getQueryDelegate().queryForList(statementName, parameterObject, getDefaultDB());
-  }
-
-  public Integer queryForCount(String countStatement, Object param) {
-    return getQueryDelegate().queryForCount(countStatement, param, getDefaultDB());
-  }
-
-  public Integer queryForCount(String countStatement) {
-    return getQueryDelegate().queryForCount(countStatement, getDefaultDB());
-  }
+	public void setDefaultDB(DBRoute defaultDB) {
+		this.defaultDB = defaultDB;
+	}
 }
