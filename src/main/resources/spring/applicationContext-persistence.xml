@@ -14,14 +14,14 @@
 	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
 		abstract="false" scope="singleton" lazy-init="default" autowire="default" destroy-method="close">
 		<property name="driverClass" value="${sp.jdbc.driver}" />
-		<property name="jdbcUrl" value="${sp.jdbc.url}" />
-		<property name="user" value="${sp.jdbc.username}" />
-		<property name="password" value="${sp.jdbc.password}" />
-		<property name="minPoolSize" value="${sp.jdbc.minPoolSize}" />
-		<property name="maxPoolSize" value="${sp.jdbc.maxPoolSize}" />
-		<property name="maxIdleTime" value="${sp.jdbc.maxIdleTime}" />
-		<property name="initialPoolSize" value="${sp.jdbc.initialPoolSize}" />
-		<property name="numHelperThreads" value="${sp.jdbc.numHelperThreads}" />
+		<property name="jdbcUrl" value="${test.jdbc.url}" />
+		<property name="user" value="${test.jdbc.username}" />
+		<property name="password" value="${test.jdbc.password}" />
+		<property name="minPoolSize" value="${test.jdbc.minPoolSize}" />
+		<property name="maxPoolSize" value="${test.jdbc.maxPoolSize}" />
+		<property name="maxIdleTime" value="${test.jdbc.maxIdleTime}" />
+		<property name="initialPoolSize" value="${test.jdbc.initialPoolSize}" />
+		<property name="numHelperThreads" value="${test.jdbc.numHelperThreads}" />
 	</bean>
 
 	<bean id="dataSourceCommon" class="com.mchange.v2.c3p0.ComboPooledDataSource"
@@ -66,4 +66,11 @@
 	<bean id="defaultDB" class="com.mybatis.data.source.domain.DBRoute">
 		<constructor-arg value="smsServer" />
 	</bean>
+	
+	<!-- 扫描basePackage下所有以@MyBatisDao注解的接口 -->
+    <!-- <bean id="mapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+        <property name="basePackage" value="com.mybatis.data.source.dao"/>
+        <property name="annotationClass" value="com.mybatis.data.source.annotation.MyBatisDAO"/>
+    </bean> -->
 </beans>
