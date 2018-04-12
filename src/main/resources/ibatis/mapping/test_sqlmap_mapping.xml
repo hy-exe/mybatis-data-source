@@ -5,11 +5,11 @@
 	<select id="SELECT_TEST_INFO" parameterType="java.util.Map"
 		resultType="java.lang.Integer">
 		select
-			count(0)
+			order_id
 		FROM
 			test2
 		where
-		1=1
+		order_id=#{orderId}
 	</select>
 
 </mapper>

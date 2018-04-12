@@ -18,7 +18,7 @@ public class TestDAOImpl extends BaseDAO implements ITestDAO {
 	@Override
 	public Integer getInfoEntityList(String param) {
 		Map<String, Object> map = new HashMap<String, Object>();
-		map.put("param", param);
+		map.put("orderId", param);
 		return super.queryForCount("TEST_INFO.SELECT_TEST_INFO", map);
 	}
 
